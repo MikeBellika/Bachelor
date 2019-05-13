@@ -1,0 +1,80 @@
+<html>
+<head>
+<style>
+.data {
+  width: 30px;
+  height: 30px;
+  color: black;
+  text-align:center;
+  display: inline-block;
+  font-family:monospace, monospace;
+}
+#data-wrap{
+  overflow:scroll;
+  width:200vw;
+}
+  </style>
+  <title></title>
+  </head>
+<body>
+  <textarea name="data-input" id="data-input" style="width:500px; height:100px;"></textarea>
+  <input id="title" placeholder="Title" />
+  <label><input type="checkbox" id="diff" />XOR</label>
+  <label><input type="checkbox" id="bw" />Black&White</label>
+  <div id="data-wrap">
+
+  </div>
+<script>
+  (function() {
+     updateData();
+     updateTitle();
+  })();
+     document.getElementById("data-input").oninput = updateData;
+     document.getElementById("title").oninput = updateTitle;
+     document.getElementById("diff").onchange = updateData;
+     document.getElementById("bw").onchange = updateData;
+  function updateTitle(){
+    document.getElementsByTagName("title")[0].innerHTML = document.getElementById("title").value;
+  }
+
+  function updateData(){
+    wrap = document.getElementById('data-wrap');
+    wrap.innerHTML = "";
+    var diff = document.getElementById("diff").checked;
+    var bw = document.getElementById("bw").checked ? "0%" : "100%";
+    data = document.getElementById("data-input").value;
+    data = data.split("\n");
+    previous_line = data[0];
+    for(line = 1; line < data.length; line++){
+      var data_line = data[line];
+      for(i = 0; i < data_line.length; i+=2){
+        var currentData = data_line[i] + data_line[i + 1];
+        var currentDataInt = parseInt(currentData, 16);
+        if(diff){
+          previousDataInt = parseInt(previous_line[i] + previous_line[i + 1], 16);
+          currentData = (currentDataInt ^ previousDataInt).toString(16); //Convert the difference to hex
+          if(currentData.length == 1){ //Pad with 0
+            currentData = "0" + currentData;
+          }
+        }
+        var dataDiv = document.createElement('div');
+        dataDiv.className = "data";
+        dataDiv.innerHTML = currentData;
+        //360 possible options in the color wheel. 360 and 0 are both red, so we only allow values up to 300 (purple). 255*1.171875=300
+        //We also don't want to color 0x00 differently, so we have a check for that.
+        dataDiv.style.background = currentData === "00" ? "#000000" : "hsl(" + parseInt(currentData, 16) * 1.171875 + ", " + bw + ", 50%)";
+        if(currentData == "00"){
+          dataDiv.style.color = "#FFFFFF";
+        }
+        wrap.appendChild(dataDiv);
+      }
+      previous_line = data_line;
+
+      wrap.appendChild(document.createElement("br"));
+    }
+  };
+
+
+</script>
+</body>
+</html>
